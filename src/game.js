@@ -1,5 +1,5 @@
-import { drawBird } from "./bird.js";
-import { createPipes } from "./pipe.js";
+import { drawBird, getBird } from "./bird.js";
+import { createPipes, getPipes } from "./pipe.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -8,6 +8,8 @@ const GAME_WIDTH = 360;
 const GAME_HEIGHT = 640;
 
 const gameSpeed = 2;
+
+let isPaused = false;
 
 const bgImage = new Image();
 const groundImage = new Image();
@@ -85,6 +87,32 @@ class Layer {
   }
 }
 
+function checkCollision() {
+  const bird = getBird();
+  const pipes = getPipes();
+
+  pipes.forEach((pipe) => {
+    // Check collision with top pipe
+    const collideTop =
+      bird.x < pipe.x + pipe.width &&
+      bird.x + bird.width > pipe.x &&
+      bird.y < pipe.topPipeY + pipe.topPipeHeight &&
+      bird.y + bird.height > pipe.topPipeY;
+
+    // Check collision with bottom pipe
+    const collideBottom =
+      bird.x < pipe.x + pipe.width &&
+      bird.x + bird.width > pipe.x &&
+      bird.y < pipe.bottomPipeY + pipe.bottomPipeHeight &&
+      bird.y + bird.height > pipe.bottomPipeY;
+
+    if (collideTop || collideBottom) {
+      console.log("collision");
+      isPaused = true;
+    }
+  });
+}
+
 const bgLayer = new Layer(bgImage, 0, 0, GAME_WIDTH, GAME_HEIGHT, 0.3);
 const groundLayer = new Layer(groundImage, 0, GAME_HEIGHT - 112, GAME_WIDTH, 112, 1);
 
@@ -100,8 +128,10 @@ function drawGame() {
   groundLayer.draw(ctx);
 
   drawBird(ctx, birdImageDf, GAME_HEIGHT);
-
-  requestAnimationFrame(drawGame);
+  checkCollision();
+  if (!isPaused) {
+    requestAnimationFrame(drawGame);
+  }
 }
 
 window.addEventListener("resize", initCanvas);

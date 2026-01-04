@@ -6,8 +6,8 @@ class Bird {
     this.image = image;
     this.x = x;
     this.y = GAME_HEIGHT / 2 - 30;
-    this.width = image.width;
-    this.height = image.height;
+    this.width = image.width + 5;
+    this.height = image.height + 5;
     this.velocity = 0;
     this.gravity = 0.4;
     this.flap = -6;
@@ -67,6 +67,10 @@ function birdControls(bird) {
   });
 }
 
+function getBird(){
+    return bird;
+}
+
 function drawBird(ctx, birdImageDf, GAME_HEIGHT) {
   if (!bird) {
     bird = new Bird(birdImageDf, 30, GAME_HEIGHT);
@@ -76,4 +80,4 @@ function drawBird(ctx, birdImageDf, GAME_HEIGHT) {
   bird.draw(ctx);
 }
 
-export { drawBird };
+export { drawBird, getBird };

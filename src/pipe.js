@@ -41,6 +41,10 @@ class Pipe {
   }
 }
 
+function getPipes(){
+  return pipes;
+}
+
 function createPipes(ctx, GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed) {
   pipeTimer++;
   if (pipeTimer >= pipeInterval) {
@@ -56,4 +60,4 @@ function createPipes(ctx, GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom
   pipes = pipes.filter((pipe) => !pipe.isOffScreen());
 }
 
-export { createPipes };
+export { createPipes, getPipes };
