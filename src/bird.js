@@ -1,4 +1,5 @@
 let bird = null;
+let isPaused = false;
 let hasJumped = false;
 
 class Bird {
@@ -6,8 +7,8 @@ class Bird {
     this.image = image;
     this.x = x;
     this.y = GAME_HEIGHT / 2 - 30;
-    this.width = image.width + 5;
-    this.height = image.height + 5;
+    this.width = image.width;
+    this.height = image.height;
     this.velocity = 0;
     this.gravity = 0.4;
     this.flap = -6;
@@ -31,7 +32,7 @@ class Bird {
 
     // Update rotation based on velocity (-20° to 90°)
     if (this.velocity < 0) {
-      this.rotation = Math.max(-30, this.velocity * 3);
+      this.rotation = Math.max(-20, this.velocity * 3);
     } else {
       this.rotation = Math.min(90, this.velocity * 4);
     }
@@ -43,7 +44,9 @@ class Bird {
     }
   }
   jump() {
-    this.velocity = this.flap;
+    if (!isPaused) {
+      this.velocity = this.flap;
+    }
   }
 }
 
@@ -61,21 +64,27 @@ function birdControls(bird) {
     }
   });
 
+//     document.addEventListener("mousedown", () => {
+//     bird.jump();
+//   });
+
   document.addEventListener("touchstart", (e) => {
     e.preventDefault();
     bird.jump();
   });
 }
 
-function getBird(){
-    return bird;
+function getBird() {
+  return bird;
 }
 
-function drawBird(ctx, birdImageDf, GAME_HEIGHT) {
+function drawBird(ctx, birdImageDf, GAME_HEIGHT, isGameOver) {
+  isPaused = isGameOver;
   if (!bird) {
     bird = new Bird(birdImageDf, 30, GAME_HEIGHT);
     birdControls(bird);
   }
+
   bird.update();
   bird.draw(ctx);
 }

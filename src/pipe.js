@@ -6,7 +6,7 @@ class Pipe {
   constructor(canvasWidth, canvasHeight, topImage, bottomImage, gameSpeed) {
     this.x = canvasWidth;
     this.width = topImage.width;
-    this.gap = 150;
+    this.gap = 100;
     this.speed = gameSpeed;
     this.passed = false;
 
@@ -41,21 +41,16 @@ class Pipe {
   }
 }
 
-function getPipes(){
+function getPipes() {
   return pipes;
 }
 
-function createPipes(ctx, GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed) {
+function createPipes(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed) {
   pipeTimer++;
   if (pipeTimer >= pipeInterval) {
     pipes.push(new Pipe(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed));
     pipeTimer = 0;
   }
-
-  pipes.forEach((pipe) => {
-    pipe.update();
-    pipe.draw(ctx);
-  });
 
   pipes = pipes.filter((pipe) => !pipe.isOffScreen());
 }

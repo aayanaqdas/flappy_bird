@@ -12,10 +12,6 @@ body {
 canvas {
   display: block;
   background-color: #70c5ce;
-  max-width: 100vw;
-  max-height: 100vh;
+  image-rendering: pixelated;
 }
 
-.rotate{
-  transform: rotate(45deg);
-}

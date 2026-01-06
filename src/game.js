@@ -3,29 +3,34 @@ import { createPipes, getPipes } from "./pipe.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
 
-const GAME_WIDTH = 360;
-const GAME_HEIGHT = 640;
+const GAME_WIDTH = 320;
+const GAME_HEIGHT = 480;
 
 const gameSpeed = 2;
 
-let isPaused = false;
+let isGameOver = false;
+let isStarted = false;
+let isGamePaused = false;
+
+let groundX = 0;
+const groundHeight = 112;
 
 const bgImage = new Image();
 const groundImage = new Image();
+const gameOverImage = new Image();
 const birdImageDf = new Image();
-const birdImageMf = new Image();
-const birdImageUf = new Image();
 const pipeImageBottom = new Image();
 const pipeImageTop = new Image();
+
 bgImage.src = "./sprites/background-day.png";
 groundImage.src = "./sprites/base.png";
-birdImageDf.src = "./sprites/yellowbird-downflap.png";
-birdImageMf.src = "./sprites/yellowbird-midflap.png";
-birdImageUf.src = "./sprites/yellowbird-upflap.png";
 
+birdImageDf.src = "./sprites/yellowbird-downflap.png";
 pipeImageBottom.src = "./sprites/pipe-green-bottom.png";
 pipeImageTop.src = "./sprites/pipe-green-top.png";
+gameOverImage.src = "./sprites/gameover.png";
 
 function loadImages(imageList) {
   const promises = imageList.map((img) => {
@@ -41,15 +46,14 @@ const spriteImages = [
   bgImage,
   groundImage,
   birdImageDf,
-  birdImageMf,
-  birdImageUf,
   pipeImageTop,
   pipeImageBottom,
+  gameOverImage,
 ];
 
 loadImages(spriteImages)
   .then(() => {
-    drawGame();
+    gameLoop();
   })
   .catch((err) => {
     console.error("Failed to load images:", err);
@@ -64,42 +68,30 @@ function initCanvas() {
   canvas.style.height = `${GAME_HEIGHT * scale}px`;
 }
 
-class Layer {
-  constructor(image, x, y, width, height, speedModifier) {
-    this.image = image;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.speedModifier = speedModifier;
-  }
-
-  update(gameSpeed) {
-    this.x -= gameSpeed * this.speedModifier;
-    if (this.x <= -this.width) {
-      this.x += this.width;
-    }
-  }
-
-  draw(ctx) {
-    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-    ctx.drawImage(this.image, this.x + this.width, this.y, this.width, this.height);
-  }
-}
-
-function checkCollision() {
-  const bird = getBird();
+function drawPipes() {
   const pipes = getPipes();
+  if (!isGameOver) {
+    createPipes(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed);
+  }
 
   pipes.forEach((pipe) => {
-    // Check collision with top pipe
+    if (!isGameOver) {
+      pipe.update();
+      checkCollision(pipe);
+    }
+    pipe.draw(ctx);
+  });
+}
+
+function checkCollision(pipe) {
+  const bird = getBird();
+  if (bird && pipe) {
     const collideTop =
       bird.x < pipe.x + pipe.width &&
       bird.x + bird.width > pipe.x &&
       bird.y < pipe.topPipeY + pipe.topPipeHeight &&
       bird.y + bird.height > pipe.topPipeY;
 
-    // Check collision with bottom pipe
     const collideBottom =
       bird.x < pipe.x + pipe.width &&
       bird.x + bird.width > pipe.x &&
@@ -108,30 +100,42 @@ function checkCollision() {
 
     if (collideTop || collideBottom) {
       console.log("collision");
-      isPaused = true;
+      isGameOver = true;
     }
-  });
+  }
 }
 
-const bgLayer = new Layer(bgImage, 0, 0, GAME_WIDTH, GAME_HEIGHT, 0.3);
-const groundLayer = new Layer(groundImage, 0, GAME_HEIGHT - 112, GAME_WIDTH, 112, 1);
-
 function drawGame() {
-  ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-
-  bgLayer.update(gameSpeed);
-  bgLayer.draw(ctx);
-
-  createPipes(ctx, GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed);
-
-  groundLayer.update(gameSpeed);
-  groundLayer.draw(ctx);
-
-  drawBird(ctx, birdImageDf, GAME_HEIGHT);
-  checkCollision();
-  if (!isPaused) {
-    requestAnimationFrame(drawGame);
+  if (!isGameOver) {
+    groundX -= gameSpeed;
+    if (groundX <= -GAME_WIDTH) {
+      groundX += GAME_WIDTH;
+    }
   }
+
+  ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  ctx.drawImage(bgImage, 0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+  drawPipes();
+  drawBird(ctx, birdImageDf, GAME_HEIGHT, isGameOver);
+
+  ctx.drawImage(groundImage, groundX, GAME_HEIGHT - groundHeight, GAME_WIDTH, groundHeight);
+  ctx.drawImage(
+    groundImage,
+    groundX + GAME_WIDTH,
+    GAME_HEIGHT - groundHeight,
+    GAME_WIDTH,
+    groundHeight
+  );
+
+  if (isGameOver) {
+    ctx.drawImage(gameOverImage, GAME_WIDTH / 2 - gameOverImage.width / 2, 100);
+  }
+}
+
+function gameLoop() {
+  drawGame();
+  requestAnimationFrame(gameLoop);
 }
 
 window.addEventListener("resize", initCanvas);
