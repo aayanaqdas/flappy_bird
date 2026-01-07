@@ -3,7 +3,7 @@ let pipeTimer = 0;
 const pipeInterval = 100;
 
 class Pipe {
-  constructor(canvasWidth, canvasHeight, topImage, bottomImage, gameSpeed) {
+  constructor(canvasWidth, canvasHeight, topImage, bottomImage, gameSpeed, groundHeight) {
     this.x = canvasWidth;
     this.width = topImage.width;
     this.gap = 100;
@@ -16,7 +16,6 @@ class Pipe {
     this.topPipeHeight = topImage.height;
     this.bottomPipeHeight = bottomImage.height;
 
-    const groundHeight = 112;
     const minGapY = 60; // Minimum distance from top
     const maxGapY = canvasHeight - groundHeight - this.gap - 60;
     this.gapY = Math.random() * (maxGapY - minGapY) + minGapY;
@@ -45,10 +44,19 @@ function getPipes() {
   return pipes;
 }
 
-function createPipes(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed) {
+function createPipes(
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  pipeImageTop,
+  pipeImageBottom,
+  gameSpeed,
+  groundHeight
+) {
   pipeTimer++;
   if (pipeTimer >= pipeInterval) {
-    pipes.push(new Pipe(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed));
+    pipes.push(
+      new Pipe(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed, groundHeight)
+    );
     pipeTimer = 0;
   }
 
