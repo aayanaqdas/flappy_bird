@@ -31,6 +31,7 @@ for (let i = 0; i <= 9; i++) {
   img.src = `./sprites/${i}.png`;
   scoreImages.push(img);
 }
+const scoreboardImage = new Image();
 
 bgImage.src = "./sprites/background-day.png";
 groundImage.src = "./sprites/base.png";
@@ -38,6 +39,7 @@ birdImageDf.src = "./sprites/yellowbird-downflap.png";
 pipeImageBottom.src = "./sprites/pipe-green-bottom.png";
 pipeImageTop.src = "./sprites/pipe-green-top.png";
 gameOverImage.src = "./sprites/gameover.png";
+scoreboardImage.src = "./sprites/scoreboard.png";
 
 function loadImages(imageList) {
   const promises = imageList.map((img) => {
@@ -74,8 +76,8 @@ function initCanvas() {
   const scale = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
   canvas.style.width = `${GAME_WIDTH * scale}px`;
   canvas.style.height = `${GAME_HEIGHT * scale}px`;
-  canvas.style.imageRendering = "pixelated";
   canvas.style.imageRendering = "crisp-edges";
+  canvas.style.imageRendering = "pixelated";
 }
 function checkCollision(pipe) {
   const bird = getBird();
@@ -118,21 +120,32 @@ function drawPipes() {
   });
 }
 
-function drawScore() {
+function drawScore(x, y) {
   const scoreStr = score.toString();
   const digitWidth = scoreImages[0].width;
-  const digitHeight = scoreImages[0].height * 0.6;
+  const digitHeight = scoreImages[0].height;
   const spacing = 2;
 
   const totalWidth = digitWidth * scoreStr.length + spacing * (scoreStr.length - 1);
-  let startX = (GAME_WIDTH - totalWidth) / 2;
-  const startY = 30;
+
+  // If x is provided, align the right edge of the last digit to x
+  let startX = typeof x === "number" ? x - totalWidth : (GAME_WIDTH - totalWidth) / 2;
+  const startY = y ? y : 20;
 
   for (let i = 0; i < scoreStr.length; i++) {
     const digit = parseInt(scoreStr[i]);
     ctx.drawImage(scoreImages[digit], startX, startY, digitWidth, digitHeight);
     startX += digitWidth + spacing;
   }
+}
+
+function drawScoreboard() {
+  ctx.drawImage(
+    scoreboardImage,
+    GAME_WIDTH / 2 - scoreboardImage.width / 2,
+    GAME_HEIGHT / 2 - scoreboardImage.height / 2
+  );
+  drawScore(scoreboardImage.width + 10, GAME_HEIGHT / 2 - 25);
 }
 
 function drawGame() {
@@ -158,7 +171,8 @@ function drawGame() {
   );
 
   if (isGameOver) {
-    ctx.drawImage(gameOverImage, GAME_WIDTH / 2 - gameOverImage.width / 2, 100);
+    ctx.drawImage(gameOverImage, GAME_WIDTH / 2 - gameOverImage.width / 2, 120);
+    drawScoreboard();
   } else {
     drawScore();
   }
