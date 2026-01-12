@@ -3,7 +3,6 @@ import { createPipes, getPipes } from "./pipe.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = false;
 
 const GAME_WIDTH = 330;
 const GAME_HEIGHT = 480;
@@ -21,9 +20,9 @@ const groundHeight = 100;
 const bgImage = new Image();
 const groundImage = new Image();
 const gameOverImage = new Image();
-const birdImageDf = new Image();
 const pipeImageBottom = new Image();
 const pipeImageTop = new Image();
+const spritesheet = new Image();
 
 const scoreImages = [];
 for (let i = 0; i <= 9; i++) {
@@ -35,11 +34,11 @@ const scoreboardImage = new Image();
 
 bgImage.src = "./sprites/background-day.png";
 groundImage.src = "./sprites/base.png";
-birdImageDf.src = "./sprites/yellowbird-downflap.png";
 pipeImageBottom.src = "./sprites/pipe-green-bottom.png";
 pipeImageTop.src = "./sprites/pipe-green-top.png";
 gameOverImage.src = "./sprites/gameover.png";
 scoreboardImage.src = "./sprites/scoreboard.png";
+spritesheet.src = "./sprites/flappybird_spritesheet.png";
 
 function loadImages(imageList) {
   const promises = imageList.map((img) => {
@@ -52,9 +51,9 @@ function loadImages(imageList) {
 }
 
 const spriteImages = [
+  spritesheet,
   bgImage,
   groundImage,
-  birdImageDf,
   pipeImageTop,
   pipeImageBottom,
   gameOverImage,
@@ -70,15 +69,32 @@ loadImages(spriteImages)
   });
 
 function initCanvas() {
-  canvas.width = GAME_WIDTH;
-  canvas.height = GAME_HEIGHT;
+  const dpr = window.devicePixelRatio || 1;
 
+  //Calculate CSS display size based on full height
   const scale = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
-  canvas.style.width = `${GAME_WIDTH * scale}px`;
-  canvas.style.height = `${GAME_HEIGHT * scale}px`;
-  canvas.style.imageRendering = "crisp-edges";
-  canvas.style.imageRendering = "pixelated";
+  const displayWidth = GAME_WIDTH * scale;
+  const displayHeight = GAME_HEIGHT * scale;
+
+  //Set internal resolution (Multiplied by dpr for sharpness)
+  canvas.width = displayWidth * dpr;
+  canvas.height = displayHeight * dpr;
+
+  //Set CSS display size
+  canvas.style.width = `${displayWidth}px`;
+  canvas.style.height = `${displayHeight}px`;
+
+  //RESET context settings
+  ctx.imageSmoothingEnabled = false; //
+
+  //Scale all drawing operations to match the resolution
+  ctx.scale(dpr * scale, dpr * scale);
+
+  //Apply CSS rendering hints for the browser upscaler
+  canvas.style.imageRendering = "pixelated"; //
+  canvas.style.imageRendering = "crisp-edges"; // Fallback for Firefox
 }
+
 function checkCollision(pipe) {
   const bird = getBird();
   if (bird && pipe) {
@@ -159,7 +175,7 @@ function drawGame() {
   ctx.drawImage(bgImage, 0, 0, GAME_WIDTH, GAME_HEIGHT);
 
   drawPipes();
-  drawBird(ctx, birdImageDf, GAME_HEIGHT, isGameOver, groundHeight);
+  drawBird(ctx, spritesheet, GAME_HEIGHT, isGameOver, groundHeight);
 
   ctx.drawImage(groundImage, groundX, GAME_HEIGHT - groundHeight, GAME_WIDTH, groundHeight);
   ctx.drawImage(

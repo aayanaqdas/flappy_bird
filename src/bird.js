@@ -7,22 +7,49 @@ class Bird {
     this.image = image;
     this.x = x;
     this.y = GAME_HEIGHT / 2 - 30;
-    this.width = image.width;
-    this.height = image.height;
+    this.width = 35;
+    this.height = 24;
     this.velocity = 0;
     this.gravity = 0.4;
     this.flap = -6;
     this.rotation = 0;
     this.groundY = GAME_HEIGHT - groundHeight - this.height;
+
+    //Bird flap animation
+    //upflapX: 5, midflapX: 61, downflapX: 117
+    this.frameX = 5; //Starts on 5 in spritesheet
+    this.frameTimer = 0;
+    this.frameInterval = 8;
   }
 
   draw(ctx) {
     ctx.save();
 
+    if (!isPaused) {
+      this.frameTimer++;
+      if (this.frameTimer >= this.frameInterval) {
+        this.frameX += 56;
+        this.frameTimer = 0;
+        if (this.frameX > 117) {
+          this.frameX = 5;
+        }
+      }
+    }
+
     // Rotate bird based on velocity
     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
     ctx.rotate((this.rotation * Math.PI) / 180);
-    ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+    ctx.drawImage(
+      this.image,
+      this.frameX,
+      982,
+      35,
+      24,
+      -this.width / 2,
+      -this.height / 2,
+      this.width,
+      this.height
+    );
 
     ctx.restore();
   }
