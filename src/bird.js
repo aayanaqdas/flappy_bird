@@ -1,11 +1,12 @@
 let bird = null;
 let isPaused = false;
 let hasJumped = false;
+let controlsInitialized = false;
 
 class Bird {
-  constructor(image, x, GAME_HEIGHT, groundHeight) {
+  constructor(image, birdFrames, GAME_HEIGHT, groundHeight) {
     this.image = image;
-    this.x = x;
+    this.x = 80;
     this.y = GAME_HEIGHT / 2 - 30;
     this.width = 35;
     this.height = 24;
@@ -15,9 +16,9 @@ class Bird {
     this.rotation = 0;
     this.groundY = GAME_HEIGHT - groundHeight - this.height;
 
-    //Bird flap animation
-    //upflapX: 5, midflapX: 61, downflapX: 117
-    this.frameX = 5; //Starts on 5 in spritesheet
+    this.frames = birdFrames;
+    this.currentFrame = 0;
+
     this.frameTimer = 0;
     this.frameInterval = 8;
   }
@@ -28,28 +29,31 @@ class Bird {
     if (!isPaused) {
       this.frameTimer++;
       if (this.frameTimer >= this.frameInterval) {
-        this.frameX += 56;
+        this.currentFrame = this.currentFrame + 1;
         this.frameTimer = 0;
-        if (this.frameX > 117) {
-          this.frameX = 5;
-        }
+      }
+      if (this.currentFrame >= this.frames.length) {
+        this.currentFrame = 0;
       }
     }
+
+    const frame = this.frames[this.currentFrame];
 
     // Rotate bird based on velocity
     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
     ctx.rotate((this.rotation * Math.PI) / 180);
     ctx.drawImage(
       this.image,
-      this.frameX,
-      982,
-      35,
-      24,
+      frame.sx,
+      frame.sy,
+      frame.sw,
+      frame.sh,
       -this.width / 2,
       -this.height / 2,
       this.width,
       this.height
     );
+    ctx.drawImage;
 
     ctx.restore();
   }
@@ -78,6 +82,8 @@ class Bird {
 }
 
 function birdControls(bird) {
+  if (controlsInitialized) return; // Prevent multiple listener registrations
+  controlsInitialized = true;
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space" || e.code === "ArrowUp") {
       bird.jump();
@@ -91,24 +97,24 @@ function birdControls(bird) {
     }
   });
 
-  //     document.addEventListener("mousedown", () => {
-  //     bird.jump();
-  //   });
-
-  document.addEventListener("touchstart", (e) => {
-    e.preventDefault();
+  document.addEventListener("mousedown", () => {
     bird.jump();
   });
+
+  // document.addEventListener("touchstart", (e) => {
+  //   e.preventDefault();
+  //   bird.jump();
+  // });
 }
 
 function getBird() {
   return bird;
 }
 
-function drawBird(ctx, birdImageDf, GAME_HEIGHT, isGameOver, groundHeight) {
+function drawBird(ctx, spritesheet, birdFrames, GAME_HEIGHT, isGameOver, groundHeight) {
   isPaused = isGameOver;
   if (!bird) {
-    bird = new Bird(birdImageDf, 80, GAME_HEIGHT, groundHeight);
+    bird = new Bird(spritesheet, birdFrames, GAME_HEIGHT, groundHeight);
     birdControls(bird);
   }
 

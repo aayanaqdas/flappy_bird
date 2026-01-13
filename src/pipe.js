@@ -3,18 +3,17 @@ let pipeTimer = 0;
 const pipeInterval = 100;
 
 class Pipe {
-  constructor(canvasWidth, canvasHeight, topImage, bottomImage, gameSpeed, groundHeight) {
+  constructor(image, pipeTop, pipeBottom, canvasWidth, canvasHeight, gameSpeed, groundHeight) {
+    this.image = image;
     this.x = canvasWidth;
-    this.width = topImage.width;
+    this.width = 52;
     this.gap = 100;
     this.speed = gameSpeed;
     this.passed = false;
-
-    this.topImg = topImage;
-    this.bottomImg = bottomImage;
-
-    this.topPipeHeight = topImage.height;
-    this.bottomPipeHeight = bottomImage.height;
+    this.pipeTop = pipeTop;
+    this.pipeBottom = pipeBottom;
+    this.topPipeHeight = 320;
+    this.bottomPipeHeight = 320;
 
     const minGapY = 60; // Minimum distance from top
     const maxGapY = canvasHeight - groundHeight - this.gap - 60;
@@ -28,8 +27,28 @@ class Pipe {
   }
 
   draw(ctx) {
-    ctx.drawImage(this.topImg, this.x, this.topPipeY, this.width, this.topPipeHeight);
-    ctx.drawImage(this.bottomImg, this.x, this.bottomPipeY, this.width, this.bottomPipeHeight);
+    ctx.drawImage(
+      this.image,
+      this.pipeTop.sx,
+      this.pipeTop.sy,
+      this.pipeTop.sw,
+      this.pipeTop.sh,
+      this.x,
+      this.topPipeY,
+      this.width,
+      this.topPipeHeight
+    );
+    ctx.drawImage(
+      this.image,
+      this.pipeBottom.sx,
+      this.pipeBottom.sy,
+      this.pipeBottom.sw,
+      this.pipeBottom.sh,
+      this.x,
+      this.bottomPipeY,
+      this.width,
+      this.bottomPipeHeight
+    );
   }
 
   update() {
@@ -45,17 +64,18 @@ function getPipes() {
 }
 
 function createPipes(
+  spritesheet,
+  pipeTop,
+  pipeBottom,
   GAME_WIDTH,
   GAME_HEIGHT,
-  pipeImageTop,
-  pipeImageBottom,
   gameSpeed,
   groundHeight
 ) {
   pipeTimer++;
   if (pipeTimer >= pipeInterval) {
     pipes.push(
-      new Pipe(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed, groundHeight)
+      new Pipe(spritesheet, pipeTop, pipeBottom, GAME_WIDTH, GAME_HEIGHT, gameSpeed, groundHeight)
     );
     pipeTimer = 0;
   }

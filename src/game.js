@@ -1,3 +1,4 @@
+import { spriteMap } from "./spriteMap.js";
 import { drawBird, getBird } from "./bird.js";
 import { createPipes, getPipes } from "./pipe.js";
 
@@ -17,56 +18,19 @@ let isGamePaused = false;
 let groundX = 0;
 const groundHeight = 100;
 
-const bgImage = new Image();
-const groundImage = new Image();
-const gameOverImage = new Image();
-const pipeImageBottom = new Image();
-const pipeImageTop = new Image();
 const spritesheet = new Image();
+spritesheet.src = "./sprites/spritesheet.png";
 
-const scoreImages = [];
-for (let i = 0; i <= 9; i++) {
-  const img = new Image();
-  img.src = `./sprites/${i}.png`;
-  scoreImages.push(img);
-}
-const scoreboardImage = new Image();
-
-bgImage.src = "./sprites/background-day.png";
-groundImage.src = "./sprites/base.png";
-pipeImageBottom.src = "./sprites/pipe-green-bottom.png";
-pipeImageTop.src = "./sprites/pipe-green-top.png";
-gameOverImage.src = "./sprites/gameover.png";
-scoreboardImage.src = "./sprites/scoreboard.png";
-spritesheet.src = "./sprites/flappybird_spritesheet.png";
-
-function loadImages(imageList) {
-  const promises = imageList.map((img) => {
-    return new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
-  });
-  return Promise.all(promises);
-}
-
-const spriteImages = [
-  spritesheet,
-  bgImage,
-  groundImage,
-  pipeImageTop,
-  pipeImageBottom,
-  gameOverImage,
-  ...scoreImages,
-];
-
-loadImages(spriteImages)
-  .then(() => {
-    gameLoop();
-  })
-  .catch((err) => {
-    console.error("Failed to load images:", err);
-  });
+const bg = spriteMap.background;
+const ground = spriteMap.ground;
+const pipeTop = spriteMap.pipeTop;
+const pipeBottom = spriteMap.pipeBottom;
+const scoreBoard = spriteMap.scoreBoard;
+const birdFrames = spriteMap.birdFrames;
+const messages = spriteMap.messages;
+// const buttons = spriteMap.buttons;
+// const medals = spriteMap.medals;
+const digits = spriteMap.digits;
 
 function initCanvas() {
   const dpr = window.devicePixelRatio || 1;
@@ -85,7 +49,8 @@ function initCanvas() {
   canvas.style.height = `${displayHeight}px`;
 
   //RESET context settings
-  ctx.imageSmoothingEnabled = false; //
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = false;
 
   //Scale all drawing operations to match the resolution
   ctx.scale(dpr * scale, dpr * scale);
@@ -124,7 +89,7 @@ function checkCollision(pipe) {
 function drawPipes() {
   const pipes = getPipes();
   if (!isGameOver) {
-    createPipes(GAME_WIDTH, GAME_HEIGHT, pipeImageTop, pipeImageBottom, gameSpeed, groundHeight);
+    createPipes(spritesheet, pipeTop, pipeBottom, GAME_WIDTH, GAME_HEIGHT, gameSpeed, groundHeight);
   }
 
   pipes.forEach((pipe) => {
@@ -138,8 +103,8 @@ function drawPipes() {
 
 function drawScore(x, y) {
   const scoreStr = score.toString();
-  const digitWidth = scoreImages[0].width;
-  const digitHeight = scoreImages[0].height;
+  const digitWidth = 16;
+  const digitHeight = 22;
   const spacing = 2;
 
   const totalWidth = digitWidth * scoreStr.length + spacing * (scoreStr.length - 1);
@@ -149,19 +114,50 @@ function drawScore(x, y) {
   const startY = y ? y : 20;
 
   for (let i = 0; i < scoreStr.length; i++) {
-    const digit = parseInt(scoreStr[i]);
-    ctx.drawImage(scoreImages[digit], startX, startY, digitWidth, digitHeight);
+    const scoreDigit = parseInt(scoreStr[i]);
+    const digit = digits[scoreDigit];
+    ctx.drawImage(
+      spritesheet,
+      digit.sx,
+      digit.sy,
+      digit.sw,
+      digit.sh,
+      startX,
+      startY,
+      digitWidth,
+      digitHeight
+    );
     startX += digitWidth + spacing;
   }
 }
 
-function drawScoreboard() {
+function drawGameOverScreen() {
+  const gameOverMsg = messages.gameOver;
   ctx.drawImage(
-    scoreboardImage,
-    GAME_WIDTH / 2 - scoreboardImage.width / 2,
-    GAME_HEIGHT / 2 - scoreboardImage.height / 2
+    spritesheet,
+    scoreBoard.sx,
+    scoreBoard.sy,
+    scoreBoard.sw,
+    scoreBoard.sh,
+    GAME_WIDTH / 2 - 260 / 2,
+    GAME_HEIGHT / 2 - 130 / 2,
+    260,
+    130
   );
-  drawScore(scoreboardImage.width + 10, GAME_HEIGHT / 2 - 25);
+
+  ctx.drawImage(
+    spritesheet,
+    gameOverMsg.sx,
+    gameOverMsg.sy,
+    gameOverMsg.sw,
+    gameOverMsg.sh,
+    GAME_WIDTH / 2 - 220 / 2,
+    120,
+    220,
+    43
+  );
+
+  drawScore(GAME_WIDTH - 60, GAME_HEIGHT / 2 - 25);
 }
 
 function drawGame() {
@@ -172,14 +168,27 @@ function drawGame() {
     }
   }
 
-  ctx.drawImage(bgImage, 0, 0, GAME_WIDTH, GAME_HEIGHT);
-
+  ctx.drawImage(spritesheet, bg.sx, bg.sy, bg.sw, bg.sh, 0, 0, GAME_WIDTH, GAME_HEIGHT);
   drawPipes();
-  drawBird(ctx, spritesheet, GAME_HEIGHT, isGameOver, groundHeight);
+  drawBird(ctx, spritesheet, birdFrames, GAME_HEIGHT, isGameOver, groundHeight);
 
-  ctx.drawImage(groundImage, groundX, GAME_HEIGHT - groundHeight, GAME_WIDTH, groundHeight);
   ctx.drawImage(
-    groundImage,
+    spritesheet,
+    ground.sx,
+    ground.sy,
+    ground.sw,
+    ground.sh,
+    groundX,
+    GAME_HEIGHT - groundHeight,
+    GAME_WIDTH,
+    groundHeight
+  );
+  ctx.drawImage(
+    spritesheet,
+    ground.sx,
+    ground.sy,
+    ground.sw,
+    ground.sh,
     groundX + GAME_WIDTH,
     GAME_HEIGHT - groundHeight,
     GAME_WIDTH,
@@ -187,8 +196,7 @@ function drawGame() {
   );
 
   if (isGameOver) {
-    ctx.drawImage(gameOverImage, GAME_WIDTH / 2 - gameOverImage.width / 2, 120);
-    drawScoreboard();
+    drawGameOverScreen();
   } else {
     drawScore();
   }
@@ -199,5 +207,8 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-window.addEventListener("resize", initCanvas);
-initCanvas();
+spritesheet.onload = () => {
+  initCanvas();
+  window.addEventListener("resize", initCanvas);
+  gameLoop();
+};
