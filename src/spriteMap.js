@@ -13,7 +13,7 @@ export const spriteMap = {
     gameOver: { sx: 145, sy: 198, sw: 95, sh: 20 },
     ready: { sx: 145, sy: 220, sw: 88, sh: 23 },
     logo: { sx: 145, sy: 172, sw: 97, sh: 23 },
-    newBadge: { sx: 145, sy: 244, sw: 17, sh: 8 },
+    newScore: { sx: 145, sy: 244, sw: 17, sh: 8 },
     tap: { sx: 171, sy: 121, sw: 40, sh: 50 },
   },
 
