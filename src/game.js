@@ -1,6 +1,6 @@
 import { spriteMap } from "./spriteMap.js";
 import { drawBird, getBird } from "./bird.js";
-import { createPipes, getPipes } from "./pipe.js";
+import { updateAndCheckPipes, getPipes } from "./pipe.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -60,45 +60,28 @@ function initCanvas() {
   canvas.style.imageRendering = "crisp-edges"; // Fallback for Firefox
 }
 
-function checkCollision(pipe) {
-  const bird = getBird();
-  if (bird && pipe) {
-    const collideTop =
-      bird.x < pipe.x + pipe.width &&
-      bird.x + bird.width > pipe.x &&
-      bird.y < pipe.topPipeY + pipe.topPipeHeight &&
-      bird.y + bird.height > pipe.topPipeY;
-
-    const collideBottom =
-      bird.x < pipe.x + pipe.width &&
-      bird.x + bird.width > pipe.x &&
-      bird.y < pipe.bottomPipeY + pipe.bottomPipeHeight &&
-      bird.y + bird.height > pipe.bottomPipeY;
-
-    if (collideTop || collideBottom) {
-      console.log("collision");
-      isGameOver = true;
-    }
-    if (!pipe.passed && bird.x > pipe.x) {
-      pipe.passed = true;
-      score++;
-    }
-  }
-}
-
 function drawPipes() {
   const pipes = getPipes();
-  if (!isGameOver) {
-    createPipes(spritesheet, pipeTop, pipeBottom, GAME_WIDTH, GAME_HEIGHT, gameSpeed, groundHeight);
-  }
+  const bird = getBird();
 
-  pipes.forEach((pipe) => {
-    if (!isGameOver) {
-      pipe.update();
-      checkCollision(pipe);
-    }
-    pipe.draw(ctx);
-  });
+  const result = updateAndCheckPipes(
+    spritesheet,
+    pipeTop,
+    pipeBottom,
+    GAME_WIDTH,
+    GAME_HEIGHT,
+    gameSpeed,
+    groundHeight,
+    isGameOver,
+    bird
+  );
+  if (result.collision) {
+    bird.die();
+    isGameOver = true;
+  } else if (result.scoreIncrement) {
+    score++;
+  }
+  pipes.forEach((pipe) => pipe.draw(ctx));
 }
 
 function drawScore(scoreType, x, y) {

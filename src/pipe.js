@@ -63,24 +63,59 @@ function getPipes() {
   return pipes;
 }
 
-function createPipes(
+function updateAndCheckPipes(
   spritesheet,
   pipeTop,
   pipeBottom,
   GAME_WIDTH,
   GAME_HEIGHT,
   gameSpeed,
-  groundHeight
+  groundHeight,
+  isGameOver,
+  bird
 ) {
-  pipeTimer++;
-  if (pipeTimer >= pipeInterval) {
-    pipes.push(
-      new Pipe(spritesheet, pipeTop, pipeBottom, GAME_WIDTH, GAME_HEIGHT, gameSpeed, groundHeight)
-    );
-    pipeTimer = 0;
-  }
+  let collision = false;
+  let scoreIncrement = false;
+  if (!isGameOver) {
+    pipeTimer++;
+    if (pipeTimer >= pipeInterval) {
+      pipes.push(
+        new Pipe(spritesheet, pipeTop, pipeBottom, GAME_WIDTH, GAME_HEIGHT, gameSpeed, groundHeight)
+      );
+      pipeTimer = 0;
+    }
+    pipes.forEach((pipe) => {
+      pipe.update();
+      if (bird) {
+        const collideTop =
+          bird.x < pipe.x + pipe.width &&
+          bird.x + bird.width > pipe.x &&
+          bird.y < pipe.topPipeY + pipe.topPipeHeight &&
+          bird.y + bird.height > pipe.topPipeY;
 
-  pipes = pipes.filter((pipe) => !pipe.isOffScreen());
+        const collideBottom =
+          bird.x < pipe.x + pipe.width &&
+          bird.x + (bird.width - 5) > pipe.x &&
+          bird.y < pipe.bottomPipeY + pipe.bottomPipeHeight &&
+          bird.y + bird.height > pipe.bottomPipeY;
+
+        if (collideTop || collideBottom || bird.y + bird.height >= GAME_HEIGHT - groundHeight) {
+          collision = true;
+        }
+        if (!pipe.passed && bird.x > pipe.x) {
+          pipe.passed = true;
+          scoreIncrement = true;
+        }
+      }
+    });
+    pipes = pipes.filter((pipe) => !pipe.isOffScreen());
+  }
+  return { collision, scoreIncrement };
 }
 
-export { createPipes, getPipes };
+function resetPipes(){
+  pipes = [];
+  pipeTimer = 0;
+}
+
+export { updateAndCheckPipes, getPipes, resetPipes };
