@@ -1,11 +1,15 @@
-let ctx, spritesheet, sprites, GAME_WIDTH, GAME_HEIGHT;
+import { gameState } from "./gameStates.js";
 
-// Initialize once with all dependencies
-function initUI(context, sheet, spriteMap, width, height) {
-  GAME_WIDTH = width;
-  GAME_HEIGHT = height;
-  ctx = context;
-  spritesheet = sheet;
+const GAME_WIDTH = gameState.GAME_WIDTH;
+const GAME_HEIGHT = gameState.GAME_HEIGHT;
+
+let ctx;
+let spritesheet;
+let sprites;
+
+function initUI(spriteMap) {
+  ctx = gameState.ctx;
+  spritesheet = gameState.spritesheet;
   sprites = {
     digits: spriteMap.digits,
     messages: spriteMap.messages,
@@ -50,7 +54,9 @@ function drawScore(score, x, y) {
   }
 }
 
-function drawScoreboard(score, bestScore) {
+function drawScoreboard() {
+  const score = gameState.score;
+  const bestScore = gameState.bestScore;
   const scoreBoard = sprites.scoreBoard;
   const medals = sprites.medals;
   const scoreBoardWidth = 266;
@@ -90,9 +96,9 @@ function drawScoreboard(score, bestScore) {
     localStorage.setItem("bestScore", score);
   }
 
-  if (score >= 100) {
+  if (score >= 50) {
     medal = medals.platinum;
-  } else if (score >= 50) {
+  } else if (score >= 30) {
     medal = medals.gold;
   } else if (score >= 20) {
     medal = medals.silver;
@@ -119,7 +125,7 @@ function drawScoreboard(score, bestScore) {
   }
 }
 
-function drawGameOverScreen(score, bestScore) {
+function drawGameOverScreen() {
   const gameOverMsg = sprites.messages.gameOver;
 
   ctx.drawImage(
@@ -133,7 +139,7 @@ function drawGameOverScreen(score, bestScore) {
     220,
     48
   );
-  drawScoreboard(score, bestScore);
+  drawScoreboard();
 }
 
 export { initUI, drawGameOverScreen, drawScore };

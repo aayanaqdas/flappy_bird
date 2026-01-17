@@ -1,31 +1,35 @@
+import { gameState } from "./gameStates.js";
+
 let bird = null;
-let isPaused = false;
 let isDead = false;
 let controlsInitialized = false;
 
 class Bird {
-  constructor(image, birdFrames, GAME_HEIGHT, groundHeight) {
-    this.image = image;
+  constructor(birdFrames) {
+    this.image = gameState.spritesheet;
     this.x = 80;
-    this.y = GAME_HEIGHT / 2 - 30;
-    this.width = 35;
-    this.height = 24;
+    this.y = 80;
+    this.width = 40;
+    this.height = 28;
     this.velocity = 0;
-    this.gravity = 0.3;
-    this.flap = -5.5;
+    this.gravity = 0.25;
+    this.flap = -4.6;
+    this.maxFallSpeed = 10;
+
     this.rotation = 0;
-    this.maxFallSpeed = 8;
-    this.groundY = GAME_HEIGHT - groundHeight - this.height;
+    this.groundY = gameState.GAME_HEIGHT - gameState.groundHeight - this.height;
 
     this.frames = birdFrames;
     this.currentFrame = 0;
 
     this.frameTimer = 0;
-    this.frameInterval = 6;
+    this.frameInterval = 5;
   }
 
-  draw(ctx) {
-    if (!isPaused && !isDead) {
+  draw() {
+    const ctx = gameState.ctx;
+
+    if (gameState.isPlaying()) {
       this.frameTimer++;
       if (this.frameTimer >= this.frameInterval) {
         this.currentFrame = this.currentFrame + 1;
@@ -69,37 +73,27 @@ class Bird {
       return;
     }
 
-    this.velocity += this.gravity;
-    if (this.velocity > this.maxFallSpeed) {
-      this.velocity = this.maxFallSpeed;
-    }
+    this.velocity = Math.min(this.velocity + this.gravity, this.maxFallSpeed);
     this.y += this.velocity;
 
-    // --- ROTATION LOGIC ---
-    if (this.velocity < 0) {
-      //Snap to -20 degrees instantly
-      this.rotation = -20;
-    } else if (this.velocity >= 0 && this.velocity < 3) {
-      // hang time: Stay at -20 degrees
-      // The bird doesnt start rotating down until it has reached fall speed
-      this.rotation = -20;
-    } else {
-      //rotate toward 90 degrees for dive
-      if (this.rotation < 90) {
-        this.rotation += 8;
-      }
-    }
+    // Clamp velocity between 2.5 (start turning) and 6.5 (full nosedive)
+    const clampVel = Math.min(Math.max(this.velocity, 2.5), 6.5);
 
+    // Map that range directly to rotation (-25 to 90)
+    this.rotation = -25 + (clampVel - 2.5) * (115 / 4);
+
+    // Ground collision
     if (this.y >= this.groundY) {
       this.y = this.groundY;
       this.velocity = 0;
       this.rotation = 90;
+      gameState.gameOver();
     }
   }
   jump() {
-    if (!isPaused && !isDead) {
+    if (gameState.isPlaying()) {
       this.velocity = this.flap;
-      this.rotation = -20;
+      this.rotation = -4.6;
     }
   }
 
@@ -114,13 +108,6 @@ function birdControls(bird) {
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space" || e.code === "ArrowUp") {
       bird.jump();
-      hasJumped = true;
-    }
-  });
-
-  document.addEventListener("keyup", (e) => {
-    if (e.code === "Space" || e.code === "ArrowUp") {
-      hasJumped = false;
     }
   });
 
@@ -138,21 +125,14 @@ function getBird() {
   return bird;
 }
 
-function drawBird(ctx, spritesheet, birdFrames, GAME_HEIGHT, isGameOver, groundHeight) {
-  isPaused = isGameOver;
+function drawBird(birdFrames) {
   if (!bird) {
-    bird = new Bird(spritesheet, birdFrames, GAME_HEIGHT, groundHeight);
+    bird = new Bird(birdFrames);
     birdControls(bird);
   }
+
   bird.update();
-
-  bird.draw(ctx);
+  bird.draw();
 }
 
-function resetBird() {
-  bird = null;
-  isDead = false;
-  controlsInitialized = false;
-}
-
-export { drawBird, getBird, resetBird };
+export { drawBird, getBird };

@@ -1,23 +1,15 @@
 import { spriteMap } from "./spriteMap.js";
 import { drawBird, getBird } from "./bird.js";
-import { updateAndCheckPipes, getPipes } from "./pipe.js";
+import { updateAndCheckPipes } from "./pipe.js";
 import { initUI, drawGameOverScreen, drawScore } from "./ui.js";
+import { gameState } from "./gameStates.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const GAME_WIDTH = 330;
-const GAME_HEIGHT = 480;
-
-const gameSpeed = 2;
-let score = 0;
-const bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
-let isGameOver = false;
-let isStarted = false;
-let isGamePaused = false;
-
-let groundX = 0;
-const groundHeight = 100;
+const GAME_WIDTH = gameState.GAME_WIDTH;
+const GAME_HEIGHT = gameState.GAME_HEIGHT;
+const groundHeight = gameState.groundHeight;
 
 const spritesheet = new Image();
 spritesheet.src = "./sprites/spritesheet.png";
@@ -26,12 +18,7 @@ const bg = spriteMap.background;
 const ground = spriteMap.ground;
 const pipeTop = spriteMap.pipeTop;
 const pipeBottom = spriteMap.pipeBottom;
-const scoreBoard = spriteMap.scoreBoard;
 const birdFrames = spriteMap.birdFrames;
-const messages = spriteMap.messages;
-const buttons = spriteMap.buttons;
-const medals = spriteMap.medals;
-const digits = spriteMap.digits;
 
 function initCanvas() {
   const dpr = window.devicePixelRatio || 1;
@@ -60,42 +47,26 @@ function initCanvas() {
   canvas.style.imageRendering = "pixelated"; //
   canvas.style.imageRendering = "crisp-edges"; // Fallback for Firefox
 }
-
-function drawPipes() {
-  const pipes = getPipes();
+function drawPipesAndCheckCollisions() {
   const bird = getBird();
+  if (!bird) return;
 
-  const result = updateAndCheckPipes(
-    spritesheet,
-    pipeTop,
-    pipeBottom,
-    GAME_WIDTH,
-    GAME_HEIGHT,
-    gameSpeed,
-    groundHeight,
-    isGameOver,
-    bird
-  );
+  const result = updateAndCheckPipes(pipeTop, pipeBottom, bird);
+
   if (result.collision) {
     bird.die();
-    isGameOver = true;
+    gameState.gameOver();
   } else if (result.scoreIncrement) {
-    score++;
+    gameState.incrementScore();
   }
-  pipes.forEach((pipe) => pipe.draw(ctx));
 }
 
 function drawGame() {
-  if (!isGameOver) {
-    groundX -= gameSpeed;
-    if (groundX <= -GAME_WIDTH) {
-      groundX += GAME_WIDTH;
-    }
-  }
+  gameState.updateGroundX();
 
   ctx.drawImage(spritesheet, bg.sx, bg.sy, bg.sw, bg.sh, 0, 0, GAME_WIDTH, GAME_HEIGHT);
-  drawPipes();
-  drawBird(ctx, spritesheet, birdFrames, GAME_HEIGHT, isGameOver, groundHeight);
+  drawPipesAndCheckCollisions();
+  drawBird(birdFrames);
 
   ctx.drawImage(
     spritesheet,
@@ -103,7 +74,7 @@ function drawGame() {
     ground.sy,
     ground.sw,
     ground.sh,
-    groundX,
+    gameState.groundX,
     GAME_HEIGHT - groundHeight,
     GAME_WIDTH,
     groundHeight
@@ -114,30 +85,28 @@ function drawGame() {
     ground.sy,
     ground.sw,
     ground.sh,
-    groundX + GAME_WIDTH,
+    gameState.groundX + GAME_WIDTH,
     GAME_HEIGHT - groundHeight,
     GAME_WIDTH,
     groundHeight
   );
 
-  if (isGameOver) {
-    drawGameOverScreen(score, bestScore);
+  if (gameState.isGameOver()) {
+    drawGameOverScreen();
   } else {
-    drawScore(score);
+    drawScore(gameState.score);
   }
 }
 
 function gameLoop() {
   drawGame();
-  if (!isGamePaused) {
-    requestAnimationFrame(gameLoop);
-  }
+  requestAnimationFrame(gameLoop);
 }
 
 spritesheet.onload = () => {
+  gameState.init(ctx, spritesheet);
   initCanvas();
-  initUI(ctx, spritesheet, spriteMap, GAME_WIDTH, GAME_HEIGHT);
-
+  initUI(spriteMap);
   window.addEventListener("resize", initCanvas);
   gameLoop();
 };

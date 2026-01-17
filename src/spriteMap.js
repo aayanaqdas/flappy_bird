@@ -23,6 +23,15 @@ export const spriteMap = {
     gold: { sx: 241, sy: 228, sw: 23, sh: 23 },
     platinum: { sx: 219, sy: 143, sw: 23, sh: 23 },
   },
+
+  sparkleFrames: [
+    { sx: 297, sy: 76, sw: 1, sh: 1 },
+    { sx: 262, sy: 111, sw: 3, sh: 3 },
+    { sx: 268, sy: 110, sw: 5, sh: 5 },
+    { sx: 268, sy: 110, sw: 5, sh: 5 },
+    { sx: 262, sy: 111, sw: 3, sh: 3 },
+    { sx: 297, sy: 76, sw: 1, sh: 1 },
+  ],
   buttons: {
     start: { sx: 241, sy: 212, sw: 41, sh: 15 },
     menu: { sx: 245, sy: 117, sw: 41, sh: 15 },
