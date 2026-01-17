@@ -103,22 +103,18 @@ class Bird {
 }
 
 function birdControls(bird) {
-  if (controlsInitialized) return; // Prevent multiple listener registrations
+  if (controlsInitialized) return;
   controlsInitialized = true;
+
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space" || e.code === "ArrowUp") {
       bird.jump();
     }
   });
 
-  document.addEventListener("mousedown", () => {
+  document.addEventListener("pointerdown", () => {
     bird.jump();
   });
-
-  // document.addEventListener("touchstart", (e) => {
-  //   e.preventDefault();
-  //   bird.jump();
-  // });
 }
 
 function getBird() {

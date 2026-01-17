@@ -6,6 +6,7 @@ const GAME_HEIGHT = gameState.GAME_HEIGHT;
 let ctx;
 let spritesheet;
 let sprites;
+let sparkles = [];
 
 function initUI(spriteMap) {
   ctx = gameState.ctx;
@@ -15,6 +16,7 @@ function initUI(spriteMap) {
     messages: spriteMap.messages,
     scoreBoard: spriteMap.scoreBoard,
     medals: spriteMap.medals,
+    sparkleFrames: spriteMap.sparkleFrames,
   };
 }
 
@@ -52,6 +54,53 @@ function drawScore(score, x, y) {
     );
     startX += digitWidth + spacing;
   }
+}
+
+function updateSparkles(centerX, centerY, radius) {
+  if (sparkles.length === 0) {
+    for (let i = 0; i < 1; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * radius;
+      sparkles.push({
+        x: centerX + Math.cos(angle) * dist,
+        y: centerY + Math.sin(angle) * dist,
+        frame: Math.floor(Math.random() * sprites.sparkleFrames.length),
+        frameDelay: 0,
+        centerX,
+        centerY,
+        radius,
+      });
+    }
+  }
+
+  sparkles.forEach((sparkle) => {
+    sparkle.frameDelay++;
+    if (sparkle.frameDelay >= 6) {
+      sparkle.frameDelay = 0;
+      sparkle.frame++;
+      if (sparkle.frame >= sprites.sparkleFrames.length) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * sparkle.radius;
+        sparkle.x = sparkle.centerX + Math.cos(angle) * dist;
+        sparkle.y = sparkle.centerY + Math.sin(angle) * dist;
+        sparkle.frame = 0;
+      }
+    }
+
+    const frame = sprites.sparkleFrames[sparkle.frame];
+    const size = frame.sw * 2;
+    ctx.drawImage(
+      spritesheet,
+      frame.sx,
+      frame.sy,
+      frame.sw,
+      frame.sh,
+      sparkle.x - size / 2,
+      sparkle.y - size / 2,
+      size,
+      size
+    );
+  });
 }
 
 function drawScoreboard() {
@@ -110,6 +159,9 @@ function drawScoreboard() {
     const medalSize = 53;
     const medalX = scoreBoardX + 31;
     const medalY = scoreBoardY + scoreBoardHeight / 2 - (medalSize / 2 - 7);
+    const sparkleRadius = medalSize / 2 - 5;
+    const centerX = medalX + medalSize / 2;
+    const centerY = medalY + medalSize / 2;
 
     ctx.drawImage(
       spritesheet,
@@ -122,6 +174,9 @@ function drawScoreboard() {
       medalSize,
       medalSize
     );
+    updateSparkles(centerX, centerY, sparkleRadius);
+  } else {
+    sparkles = [];
   }
 }
 

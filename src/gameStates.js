@@ -17,8 +17,7 @@ class GameState {
     this.GAME_HEIGHT = 480;
     this.groundHeight = 112;
 
-    // Game mechanics
-    this.gameSpeed = 2;
+    this.gameSpeed = 2.5;
     this.groundX = 0;
 
     this.canvas = null;
@@ -26,7 +25,6 @@ class GameState {
     this.spritesheet = null;
   }
 
-  // Initialize context
   init(ctx, spritesheet) {
     this.ctx = ctx;
     this.spritesheet = spritesheet;
