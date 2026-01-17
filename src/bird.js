@@ -24,12 +24,20 @@ class Bird {
 
     this.frameTimer = 0;
     this.frameInterval = 5;
+
+    this.menuBobSpeed = 0.05;
+    this.menuBobAmount = 15;
+    this.menuBobOffset = 0;
   }
 
   draw() {
     const ctx = gameState.ctx;
 
-    if (gameState.isPlaying()) {
+    if (gameState.isMenu()) {
+      this.x = gameState.GAME_WIDTH - (this.width + 30);
+    }
+
+    if (!gameState.isPaused() && !gameState.isGameOver()) {
       this.frameTimer++;
       if (this.frameTimer >= this.frameInterval) {
         this.currentFrame = this.currentFrame + 1;
@@ -73,21 +81,29 @@ class Bird {
       return;
     }
 
-    this.velocity = Math.min(this.velocity + this.gravity, this.maxFallSpeed);
-    this.y += this.velocity;
+    if (gameState.isMenu()) {
+      this.menuBobOffset += this.menuBobSpeed;
+      this.y = 110 + Math.sin(this.menuBobOffset) * this.menuBobAmount;
+      this.rotation = 0;
+    }
 
-    // Clamp velocity between 2.5 (start turning) and 6.5 (full nosedive)
-    const clampVel = Math.min(Math.max(this.velocity, 2.5), 6.5);
+    if (gameState.isPlaying()) {
+      this.velocity = Math.min(this.velocity + this.gravity, this.maxFallSpeed);
+      this.y += this.velocity;
 
-    // Map that range directly to rotation (-25 to 90)
-    this.rotation = -25 + (clampVel - 2.5) * (115 / 4);
+      // Clamp velocity between 2.5 (start turning) and 6.5 (full nosedive)
+      const clampVel = Math.min(Math.max(this.velocity, 2.5), 6.5);
 
-    // Ground collision
-    if (this.y >= this.groundY) {
-      this.y = this.groundY;
-      this.velocity = 0;
-      this.rotation = 90;
-      gameState.gameOver();
+      // Map that range directly to rotation (-25 to 90)
+      this.rotation = -25 + (clampVel - 2.5) * (115 / 4);
+
+      // Ground collision
+      if (this.y >= this.groundY) {
+        this.y = this.groundY;
+        this.velocity = 0;
+        this.rotation = 90;
+        gameState.gameOver();
+      }
     }
   }
   jump() {

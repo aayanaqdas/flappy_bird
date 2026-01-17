@@ -8,14 +8,14 @@ export const GameStates = {
 
 class GameState {
   constructor() {
-    this.currentState = GameStates.PLAYING;
+    this.currentState = GameStates.MENU;
 
     this.score = 0;
     this.bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
     this.GAME_WIDTH = 330;
     this.GAME_HEIGHT = 480;
-    this.groundHeight = 112;
+    this.groundHeight = 100;
 
     this.gameSpeed = 2.5;
     this.groundX = 0;
@@ -25,7 +25,8 @@ class GameState {
     this.spritesheet = null;
   }
 
-  init(ctx, spritesheet) {
+  init(canvas, ctx, spritesheet) {
+    this.canvas = canvas;
     this.ctx = ctx;
     this.spritesheet = spritesheet;
   }
@@ -80,13 +81,14 @@ class GameState {
 
   // Ground animation
   updateGroundX() {
-    if (this.isPlaying()) {
+    if (!this.isPaused() && !this.isGameOver()) {
       this.groundX -= this.gameSpeed;
       if (this.groundX <= -this.GAME_WIDTH) {
         this.groundX += this.GAME_WIDTH;
       }
     }
   }
+
 
   reset() {
     this.score = 0;

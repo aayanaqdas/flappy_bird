@@ -1,4 +1,5 @@
 import { gameState } from "./gameStates.js";
+import { getBird } from "./bird.js";
 
 const GAME_WIDTH = gameState.GAME_WIDTH;
 const GAME_HEIGHT = gameState.GAME_HEIGHT;
@@ -14,10 +15,15 @@ function initUI(spriteMap) {
   sprites = {
     digits: spriteMap.digits,
     messages: spriteMap.messages,
+    buttons: spriteMap.buttons,
     scoreBoard: spriteMap.scoreBoard,
     medals: spriteMap.medals,
     sparkleFrames: spriteMap.sparkleFrames,
   };
+
+  gameState.canvas.addEventListener("click", (e) => {
+    console.log(e.x, e.y);
+  });
 }
 
 function drawScore(score, x, y) {
@@ -196,5 +202,53 @@ function drawGameOverScreen() {
   );
   drawScoreboard();
 }
+function drawMenu() {
+  const fblogo = sprites.messages.logo;
+  const bird = getBird();
+  const startBtn = sprites.buttons.start;
+  const scoreBtn = sprites.buttons.score;
 
-export { initUI, drawGameOverScreen, drawScore };
+  const btnY = GAME_HEIGHT - gameState.groundHeight - 50;
+  const btnW = 95;
+  const btnH = 35;
+  const btnGap = 20;
+
+  const logoY = bird ? bird.y - 10 : 110;
+  ctx.drawImage(spritesheet, fblogo.sx, fblogo.sy, fblogo.sw, fblogo.sh, 30, logoY, 220, 58);
+
+  ctx.drawImage(
+    spritesheet,
+    startBtn.sx,
+    startBtn.sy,
+    startBtn.sw,
+    startBtn.sh,
+    GAME_WIDTH / 2 - btnW - btnGap,
+    btnY,
+    btnW,
+    btnH
+  );
+
+  ctx.drawImage(
+    spritesheet,
+    scoreBtn.sx,
+    scoreBtn.sy,
+    scoreBtn.sw,
+    scoreBtn.sh,
+    GAME_WIDTH / 2 + btnGap,
+    btnY,
+    btnW,
+    btnH
+  );
+}
+
+function drawUI() {
+  if (gameState.isMenu()) {
+    drawMenu();
+  } else if (gameState.isPlaying()) {
+    drawScore(gameState.score);
+  } else if (gameState.isGameOver()) {
+    drawGameOverScreen();
+  }
+}
+
+export { initUI, drawUI };
