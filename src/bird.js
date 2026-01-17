@@ -7,7 +7,7 @@ let controlsInitialized = false;
 class Bird {
   constructor(birdFrames) {
     this.image = gameState.spritesheet;
-    this.x = 80;
+    this.x = 30;
     this.y = 80;
     this.width = 40;
     this.height = 28;
@@ -32,10 +32,6 @@ class Bird {
 
   draw() {
     const ctx = gameState.ctx;
-
-    if (gameState.isMenu()) {
-      this.x = gameState.GAME_WIDTH - (this.width + 30);
-    }
 
     if (!gameState.isPaused() && !gameState.isGameOver()) {
       this.frameTimer++;
@@ -82,12 +78,14 @@ class Bird {
     }
 
     if (gameState.isMenu()) {
+      this.x = gameState.GAME_WIDTH - (this.width + 30);
       this.menuBobOffset += this.menuBobSpeed;
       this.y = 110 + Math.sin(this.menuBobOffset) * this.menuBobAmount;
       this.rotation = 0;
     }
 
     if (gameState.isPlaying()) {
+      this.x = 30;
       this.velocity = Math.min(this.velocity + this.gravity, this.maxFallSpeed);
       this.y += this.velocity;
 

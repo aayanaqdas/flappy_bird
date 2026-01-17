@@ -9,6 +9,46 @@ let spritesheet;
 let sprites;
 let sparkles = [];
 
+const BUTTONS = {
+  start: {
+    x: 0,
+    y: 0,
+    w: 95,
+    h: 35,
+    onClick: () => {
+      console.log("Start button clicked!");
+      gameState.startGame();
+    },
+  },
+  score: {
+    x: 0,
+    y: 0,
+    w: 95,
+    h: 35,
+    onClick: () => {
+      console.log("Score button clicked!");
+    },
+  },
+};
+
+function isPointInRect(clickX, clickY, x, y, width, height) {
+  return clickX >= x && clickX <= x + width && clickY >= y && clickY <= y + height;
+}
+
+function drawButton(sprite, buttonConfig) {
+  ctx.drawImage(
+    spritesheet,
+    sprite.sx,
+    sprite.sy,
+    sprite.sw,
+    sprite.sh,
+    buttonConfig.x,
+    buttonConfig.y,
+    buttonConfig.w,
+    buttonConfig.h
+  );
+}
+
 function initUI(spriteMap) {
   ctx = gameState.ctx;
   spritesheet = gameState.spritesheet;
@@ -21,8 +61,45 @@ function initUI(spriteMap) {
     sparkleFrames: spriteMap.sparkleFrames,
   };
 
+  const btnY = GAME_HEIGHT - gameState.groundHeight - 50;
+  const btnGap = 30;
+  BUTTONS.start.x = GAME_WIDTH / 2 - BUTTONS.start.w - btnGap;
+  BUTTONS.start.y = btnY;
+  BUTTONS.score.x = GAME_WIDTH / 2 + btnGap;
+  BUTTONS.score.y = btnY;
+
   gameState.canvas.addEventListener("click", (e) => {
-    console.log(e.x, e.y);
+    const rect = gameState.canvas.getBoundingClientRect();
+
+    // Convert click coordinates to game coordinates
+    const clickX = ((e.clientX - rect.left) / rect.width) * GAME_WIDTH;
+    const clickY = ((e.clientY - rect.top) / rect.height) * GAME_HEIGHT;
+
+    if (gameState.isMenu()) {
+      if (
+        isPointInRect(
+          clickX,
+          clickY,
+          BUTTONS.start.x,
+          BUTTONS.start.y,
+          BUTTONS.start.w,
+          BUTTONS.start.h
+        )
+      ) {
+        BUTTONS.start.onClick();
+      } else if (
+        isPointInRect(
+          clickX,
+          clickY,
+          BUTTONS.score.x,
+          BUTTONS.score.y,
+          BUTTONS.score.w,
+          BUTTONS.score.h
+        )
+      ) {
+        BUTTONS.score.onClick();
+      }
+    }
   });
 }
 
@@ -205,40 +282,12 @@ function drawGameOverScreen() {
 function drawMenu() {
   const fblogo = sprites.messages.logo;
   const bird = getBird();
-  const startBtn = sprites.buttons.start;
-  const scoreBtn = sprites.buttons.score;
-
-  const btnY = GAME_HEIGHT - gameState.groundHeight - 50;
-  const btnW = 95;
-  const btnH = 35;
-  const btnGap = 20;
 
   const logoY = bird ? bird.y - 10 : 110;
   ctx.drawImage(spritesheet, fblogo.sx, fblogo.sy, fblogo.sw, fblogo.sh, 30, logoY, 220, 58);
 
-  ctx.drawImage(
-    spritesheet,
-    startBtn.sx,
-    startBtn.sy,
-    startBtn.sw,
-    startBtn.sh,
-    GAME_WIDTH / 2 - btnW - btnGap,
-    btnY,
-    btnW,
-    btnH
-  );
-
-  ctx.drawImage(
-    spritesheet,
-    scoreBtn.sx,
-    scoreBtn.sy,
-    scoreBtn.sw,
-    scoreBtn.sh,
-    GAME_WIDTH / 2 + btnGap,
-    btnY,
-    btnW,
-    btnH
-  );
+  drawButton(sprites.buttons.start, BUTTONS.start);
+  drawButton(sprites.buttons.score, BUTTONS.score);
 }
 
 function drawUI() {
