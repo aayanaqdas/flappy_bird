@@ -1,3 +1,5 @@
+import { playSound } from "./audio.js";
+
 export const GameStates = {
   MENU: "MENU",
   READY: "READY",
@@ -62,19 +64,28 @@ class GameState {
     this.currentState = newState;
   }
 
+  menu() {
+    playSound("swoosh");
+    this.setState(GameStates.MENU);
+  }
+
   startGame() {
+    playSound("flap");
     this.setState(GameStates.PLAYING);
   }
 
   readyGame() {
+    playSound("swoosh");
     this.setState(GameStates.READY);
   }
 
   pauseGame() {
+    playSound("swoosh");
     this.setState(GameStates.PAUSED);
   }
 
   resumeGame() {
+    playSound("swoosh");
     if (this.previousState === GameStates.READY) {
       this.setState(GameStates.READY);
     } else {
@@ -83,10 +94,12 @@ class GameState {
   }
 
   gameOver() {
+    playSound("swoosh");
     this.setState(GameStates.GAME_OVER);
   }
 
   incrementScore() {
+    playSound("score");
     this.score++;
   }
 
@@ -105,7 +118,7 @@ class GameState {
   }
 
   reset() {
-    this.setState(GameStates.MENU);
+    this.menu();
     this.score = 0;
     this.groundX = 0;
   }

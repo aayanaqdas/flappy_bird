@@ -4,6 +4,7 @@ import { updateAndCheckPipes } from "./pipe.js";
 import { initUI, drawUI } from "./ui.js";
 import { initUIEvents } from "./uiEvents.js";
 import { gameState } from "./gameStates.js";
+import { playSound, preloadAllAudio } from "./audio.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -57,6 +58,7 @@ function drawPipesAndCheckCollisions() {
   if (result.collision) {
     bird.die();
     gameState.gameOver();
+    playSound("die");
   } else if (result.scoreIncrement) {
     gameState.incrementScore();
   }
@@ -100,10 +102,12 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-spritesheet.onload = () => {
+spritesheet.onload = async () => {
   gameState.init(canvas, ctx, spritesheet);
   initCanvas();
   initUI(spriteMap);
+
+  await preloadAllAudio();
   initUIEvents();
   window.addEventListener("resize", initCanvas);
   gameLoop();

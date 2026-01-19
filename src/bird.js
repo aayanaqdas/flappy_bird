@@ -1,4 +1,5 @@
 import { gameState } from "./gameStates.js";
+import { playSound } from "./audio.js";
 
 let bird = null;
 let isDead = false;
@@ -72,7 +73,6 @@ class Bird {
       this.velocity += this.gravity * 2;
       this.y += this.velocity;
       if (this.rotation < 90) this.rotation += 10;
-
       if (this.y >= this.groundY) {
         this.y = this.groundY;
         this.velocity = 0;
@@ -119,6 +119,7 @@ class Bird {
 
       // Ground collision
       if (this.y >= this.groundY) {
+        this.die();
         this.y = this.groundY;
         this.velocity = 0;
         this.rotation = 90;
@@ -128,12 +129,15 @@ class Bird {
   }
   jump() {
     if (gameState.isPlaying()) {
+      playSound("flap");
       this.velocity = this.flap;
       this.rotation = -4.6;
+      
     }
   }
 
   die() {
+    playSound("hit");
     isDead = true;
   }
   reset() {

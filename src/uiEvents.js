@@ -1,7 +1,10 @@
 import { gameState } from "./gameStates.js";
+import { unlockAudio } from "./audio.js";
 
 const GAME_WIDTH = gameState.GAME_WIDTH;
 const GAME_HEIGHT = gameState.GAME_HEIGHT;
+
+let audioUnlocked = false;
 
 const BUTTON_CONFIG = {
   width: 95,
@@ -49,7 +52,6 @@ const BUTTONS = {
     { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize }
   ),
 };
-
 
 BUTTONS.pause.x = BUTTON_CONFIG.pauseMargin;
 BUTTONS.pause.y = BUTTON_CONFIG.pauseMargin;
@@ -114,6 +116,10 @@ const STATE_CLICK_HANDLERS = {
 };
 
 function handleCanvasClick(e) {
+  if (!audioUnlocked) {
+    unlockAudio();
+    audioUnlocked = true;
+  }
   const rect = gameState.canvas.getBoundingClientRect();
   const clickX = ((e.clientX - rect.left) / rect.width) * GAME_WIDTH;
   const clickY = ((e.clientY - rect.top) / rect.height) * GAME_HEIGHT;
