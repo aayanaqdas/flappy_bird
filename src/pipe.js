@@ -3,6 +3,7 @@ import { gameState } from "./gameStates.js";
 let pipes = [];
 let pipeTimer = 0;
 const pipeInterval = 100;
+let lastState = null;
 
 class Pipe {
   constructor(pipeTop, pipeBottom) {
@@ -18,7 +19,7 @@ class Pipe {
     this.bottomPipeHeight = 320;
 
     const minGapY = 60;
-    const maxGapY = gameState.GAME_HEIGHT - gameState.groundHeight - this.gap - 60;
+    const maxGapY = gameState.GAME_HEIGHT - gameState.groundY - this.gap - 30;
     this.gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
     this.topPipeY = this.gapY - this.topPipeHeight;
@@ -62,6 +63,9 @@ class Pipe {
   checkCollision(bird) {
     if (!bird) return false;
 
+    const collideOffScreen =
+      bird.x < this.x + this.width && bird.x + bird.width > this.x && bird.y + bird.height < 0;
+
     const collideTop =
       bird.x < this.x + this.width &&
       bird.x + bird.width > this.x &&
@@ -74,7 +78,7 @@ class Pipe {
       bird.y < this.bottomPipeY + this.bottomPipeHeight &&
       bird.y + bird.height > this.bottomPipeY;
 
-    return collideTop || collideBottom;
+    return collideTop || collideBottom || collideOffScreen;
   }
 
   checkPassed(bird) {
@@ -92,7 +96,14 @@ function updateAndCheckPipes(pipeTop, pipeBottom, bird) {
   let collision = false;
   let scoreIncrement = false;
 
-  pipes.forEach((pipe) => pipe.draw());
+  const currentState = gameState.currentState;
+  if (currentState === "MENU" && lastState !== "MENU") {
+    resetPipes();
+  }
+
+  if (!gameState.isMenu()) {
+    pipes.forEach((pipe) => pipe.draw());
+  }
 
   if (gameState.isPlaying()) {
     pipeTimer++;

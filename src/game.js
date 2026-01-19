@@ -1,7 +1,8 @@
 import { spriteMap } from "./spriteMap.js";
 import { drawBird, getBird } from "./bird.js";
 import { updateAndCheckPipes } from "./pipe.js";
-import { initUI, drawUI, } from "./ui.js";
+import { initUI, drawUI } from "./ui.js";
+import { initUIEvents } from "./uiEvents.js";
 import { gameState } from "./gameStates.js";
 
 const canvas = document.getElementById("gameCanvas");
@@ -62,10 +63,9 @@ function drawPipesAndCheckCollisions() {
 }
 
 function drawGame() {
-  
   gameState.updateGroundX();
 
-  ctx.drawImage(spritesheet, bg.sx, bg.sy, bg.sw, bg.sh, 0, 0, GAME_WIDTH, GAME_HEIGHT);
+  ctx.drawImage(spritesheet, bg.sx, bg.sy, bg.sw, bg.sh, 0, 0, GAME_WIDTH, GAME_HEIGHT + 50);
   drawPipesAndCheckCollisions();
   drawBird(birdFrames);
 
@@ -76,7 +76,7 @@ function drawGame() {
     ground.sw,
     ground.sh,
     gameState.groundX,
-    GAME_HEIGHT - groundHeight,
+    GAME_HEIGHT - gameState.groundY,
     GAME_WIDTH,
     groundHeight
   );
@@ -87,7 +87,7 @@ function drawGame() {
     ground.sw,
     ground.sh,
     gameState.groundX + GAME_WIDTH,
-    GAME_HEIGHT - groundHeight,
+    GAME_HEIGHT - gameState.groundY,
     GAME_WIDTH,
     groundHeight
   );
@@ -104,6 +104,7 @@ spritesheet.onload = () => {
   gameState.init(canvas, ctx, spritesheet);
   initCanvas();
   initUI(spriteMap);
+  initUIEvents();
   window.addEventListener("resize", initCanvas);
   gameLoop();
 };

@@ -3,12 +3,11 @@ import { gameState } from "./gameStates.js";
 let bird = null;
 let isDead = false;
 let controlsInitialized = false;
+let lastState = null;
 
 class Bird {
   constructor(birdFrames) {
     this.image = gameState.spritesheet;
-    this.x = 30;
-    this.y = 80;
     this.width = 40;
     this.height = 28;
     this.velocity = 0;
@@ -17,7 +16,7 @@ class Bird {
     this.maxFallSpeed = 10;
 
     this.rotation = 0;
-    this.groundY = gameState.GAME_HEIGHT - gameState.groundHeight - this.height;
+    this.groundY = gameState.GAME_HEIGHT - gameState.groundY - this.height;
 
     this.frames = birdFrames;
     this.currentFrame = 0;
@@ -25,9 +24,14 @@ class Bird {
     this.frameTimer = 0;
     this.frameInterval = 5;
 
-    this.menuBobSpeed = 0.05;
-    this.menuBobAmount = 15;
+    this.menuBobSpeed = 0.1;
+    this.menuBobAmount = 7;
     this.menuBobOffset = 0;
+
+    this.x = gameState.GAME_WIDTH - (this.width + 30);
+    this.y = 110;
+
+    this.hasInitialJump = false;
   }
 
   draw() {
@@ -82,10 +86,28 @@ class Bird {
       this.menuBobOffset += this.menuBobSpeed;
       this.y = 110 + Math.sin(this.menuBobOffset) * this.menuBobAmount;
       this.rotation = 0;
+      this.velocity = 0;
+    }
+
+    if (gameState.isReady()) {
+      this.x = 80;
+      this.menuBobOffset += this.menuBobSpeed;
+      this.y =
+        gameState.GAME_WIDTH / 2 + this.height + Math.sin(this.menuBobOffset) * this.menuBobAmount;
+      this.velocity = 0;
+      this.rotation = 0;
     }
 
     if (gameState.isPlaying()) {
-      this.x = 30;
+      this.x = 80;
+
+      if (!this.hasInitialJump) {
+        this.velocity = this.flap;
+        this.rotation = -25;
+
+        this.hasInitialJump = true;
+      }
+
       this.velocity = Math.min(this.velocity + this.gravity, this.maxFallSpeed);
       this.y += this.velocity;
 
@@ -114,6 +136,16 @@ class Bird {
   die() {
     isDead = true;
   }
+  reset() {
+    isDead = false;
+    this.x = gameState.GAME_WIDTH - (this.width + 30);
+    this.y = 110;
+    this.menuBobOffset = 0;
+    this.rotation = 0;
+    this.velocity = 0;
+    this.hasInitialJump = false;
+    this.currentFrame = 0;
+  }
 }
 
 function birdControls(bird) {
@@ -126,7 +158,7 @@ function birdControls(bird) {
     }
   });
 
-  document.addEventListener("pointerdown", () => {
+  document.addEventListener("pointerdown", (e) => {
     bird.jump();
   });
 }
@@ -140,6 +172,12 @@ function drawBird(birdFrames) {
     bird = new Bird(birdFrames);
     birdControls(bird);
   }
+
+  const currentState = gameState.currentState;
+  if (currentState === "MENU" && lastState !== "MENU") {
+    bird.reset();
+  }
+  lastState = currentState;
 
   bird.update();
   bird.draw();

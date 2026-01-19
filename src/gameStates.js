@@ -9,15 +9,17 @@ export const GameStates = {
 class GameState {
   constructor() {
     this.currentState = GameStates.MENU;
+    this.previousState = null;
 
     this.score = 0;
     this.bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
     this.GAME_WIDTH = 330;
     this.GAME_HEIGHT = 480;
-    this.groundHeight = 100;
+    this.groundHeight = 150;
+    this.groundY = 70;
 
-    this.gameSpeed = 2.5;
+    this.gameSpeed = 2;
     this.groundX = 0;
 
     this.canvas = null;
@@ -51,7 +53,12 @@ class GameState {
     return this.currentState === GameStates.GAME_OVER;
   }
 
+  wasPausedFromReady() {
+    return this.isPaused() && this.previousState === GameStates.READY;
+  }
+
   setState(newState) {
+    this.previousState = this.currentState;
     this.currentState = newState;
   }
 
@@ -59,12 +66,20 @@ class GameState {
     this.setState(GameStates.PLAYING);
   }
 
+  readyGame() {
+    this.setState(GameStates.READY);
+  }
+
   pauseGame() {
     this.setState(GameStates.PAUSED);
   }
 
   resumeGame() {
-    this.setState(GameStates.PLAYING);
+    if (this.previousState === GameStates.READY) {
+      this.setState(GameStates.READY);
+    } else {
+      this.setState(GameStates.PLAYING);
+    }
   }
 
   gameOver() {
@@ -89,11 +104,10 @@ class GameState {
     }
   }
 
-
   reset() {
+    this.setState(GameStates.MENU);
     this.score = 0;
     this.groundX = 0;
-    this.setState(GameStates.READY);
   }
 }
 
