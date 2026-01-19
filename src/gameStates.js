@@ -16,13 +16,16 @@ class GameState {
     this.score = 0;
     this.bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
-    this.GAME_WIDTH = 330;
-    this.GAME_HEIGHT = 480;
+    this.GAME_WIDTH = 320;
+    this.GAME_HEIGHT = 512;
     this.groundHeight = 150;
     this.groundY = 70;
-
-    this.gameSpeed = 2;
     this.groundX = 0;
+    this.gameSpeed = 2;
+    this.flashAlpha = 0;
+    this.transitionAlpha = 0;
+    this.fadeDirection = 0;
+    this.targetState = null;
 
     this.canvas = null;
     this.ctx = null;
@@ -65,8 +68,8 @@ class GameState {
   }
 
   menu() {
-    playSound("swoosh");
-    this.setState(GameStates.MENU);
+    this.fadeDirection = 1;
+    this.targetState = GameStates.MENU;
   }
 
   startGame() {
@@ -75,8 +78,9 @@ class GameState {
   }
 
   readyGame() {
-    playSound("swoosh");
-    this.setState(GameStates.READY);
+    this.resetScore();
+    this.fadeDirection = 1;
+    this.targetState = GameStates.READY;
   }
 
   pauseGame() {
@@ -94,17 +98,21 @@ class GameState {
   }
 
   gameOver() {
+    this.flashAlpha = 1;
     playSound("swoosh");
     this.setState(GameStates.GAME_OVER);
   }
 
   incrementScore() {
-    playSound("score");
     this.score++;
+    playSound("score");
   }
 
   resetScore() {
     this.score = 0;
+  }
+  reset() {
+    this.menu();
   }
 
   // Ground animation
@@ -117,10 +125,37 @@ class GameState {
     }
   }
 
-  reset() {
-    this.menu();
-    this.score = 0;
-    this.groundX = 0;
+  drawFlash() {
+    if (this.flashAlpha > 0) {
+      this.ctx.fillStyle = `rgba(255, 255, 255, ${this.flashAlpha})`;
+      this.ctx.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
+
+      this.flashAlpha -= 0.1;
+
+      if (this.flashAlpha < 0) this.flashAlpha = 0;
+    }
+  }
+
+  updateTransition() {
+    if (this.fadeDirection === 0) return;
+    this.transitionAlpha += this.fadeDirection * 0.1;
+
+    if (this.transitionAlpha >= 1) {
+      playSound("swoosh");
+      this.transitionAlpha = 1;
+      this.fadeDirection = -1;
+      this.setState(this.targetState);
+    }
+
+    if (this.transitionAlpha <= 0 && this.fadeDirection === -1) {
+      this.transitionAlpha = 0;
+      this.fadeDirection = 0;
+    }
+  }
+
+  drawTransition() {
+    this.ctx.fillStyle = `rgba(0, 0, 0, ${this.transitionAlpha})`;
+    this.ctx.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
   }
 }
 

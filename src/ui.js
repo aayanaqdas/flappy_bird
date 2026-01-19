@@ -14,7 +14,7 @@ const LAYOUT_CONFIG = {
   logo: {
     width: 220,
     height: 58,
-    xOffset: 30,
+    xOffset: 20,
     yOffsetFromBird: -10,
     defaultY: 110,
   },
@@ -45,7 +45,7 @@ function drawButton(sprite, buttonConfig) {
     buttonConfig.x,
     buttonConfig.y,
     buttonConfig.w,
-    buttonConfig.h
+    buttonConfig.h,
   );
 }
 
@@ -91,7 +91,7 @@ function drawScore(score, x, y) {
       startX,
       startY,
       digitWidth,
-      DIGIT_CONFIG.height
+      DIGIT_CONFIG.height,
     );
 
     startX += digitWidth + DIGIT_CONFIG.spacing;
@@ -159,7 +159,7 @@ function updateSparkles(centerX, centerY, radius) {
       sparkle.x - size / 2,
       sparkle.y - size / 2,
       size,
-      size
+      size,
     );
   });
 }
@@ -232,14 +232,14 @@ function drawScoreboard() {
     x,
     y,
     width,
-    height
+    height,
   );
 
   drawScore(score, x + width - SCOREBOARD_CONFIG.scoreXOffset, y + SCOREBOARD_CONFIG.scoreYOffset);
   drawScore(
     isNewScore ? score : bestScore,
     x + width - SCOREBOARD_CONFIG.scoreXOffset,
-    y + SCOREBOARD_CONFIG.bestScoreYOffset
+    y + SCOREBOARD_CONFIG.bestScoreYOffset,
   );
 
   if (isNewScore) {
@@ -253,7 +253,7 @@ function drawScoreboard() {
       x + width - SCOREBOARD_CONFIG.newLabelXOffset,
       y + SCOREBOARD_CONFIG.newLabelYOffset,
       SCOREBOARD_CONFIG.newLabelWidth,
-      SCOREBOARD_CONFIG.newLabelHeight
+      SCOREBOARD_CONFIG.newLabelHeight,
     );
     localStorage.setItem("bestScore", score);
   }
@@ -281,7 +281,7 @@ function drawMenu() {
     xOffset,
     logoY,
     width,
-    height
+    height,
   );
 
   drawButton(sprites.buttons.start, BUTTONS.start);
@@ -303,7 +303,7 @@ function drawReadyUI() {
     (GAME_WIDTH - readyLayout.width) / 2,
     readyLayout.y,
     readyLayout.width,
-    readyLayout.height
+    readyLayout.height,
   );
 
   ctx.drawImage(
@@ -315,7 +315,7 @@ function drawReadyUI() {
     GAME_WIDTH / 2 - tapLayout.yOffset,
     GAME_WIDTH / 2 + tapLayout.yOffset,
     tapLayout.width,
-    tapLayout.height
+    tapLayout.height,
   );
 
   drawScore(gameState.score);
@@ -350,7 +350,7 @@ function drawGameOverScreen() {
     (GAME_WIDTH - width) / 2,
     y,
     width,
-    height
+    height,
   );
 
   drawScoreboard();

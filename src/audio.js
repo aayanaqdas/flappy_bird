@@ -1,4 +1,6 @@
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioCtx = new (window.AudioContext)({
+  latencyHint: "interactive",
+});
 const soundBuffers = {};
 
 const soundPaths = {

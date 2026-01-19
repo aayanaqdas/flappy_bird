@@ -13,7 +13,7 @@ class Bird {
     this.height = 28;
     this.velocity = 0;
     this.gravity = 0.25;
-    this.flap = -4.6;
+    this.flap = -4.8;
     this.maxFallSpeed = 10;
 
     this.rotation = 0;
@@ -64,7 +64,7 @@ class Bird {
       -this.width / 2,
       -this.height / 2,
       this.width,
-      this.height
+      this.height,
     );
     ctx.restore();
   }
@@ -82,7 +82,7 @@ class Bird {
     }
 
     if (gameState.isMenu()) {
-      this.x = gameState.GAME_WIDTH - (this.width + 30);
+      this.x = gameState.GAME_WIDTH - (this.width + 25);
       this.menuBobOffset += this.menuBobSpeed;
       this.y = 110 + Math.sin(this.menuBobOffset) * this.menuBobAmount;
       this.rotation = 0;
@@ -132,7 +132,6 @@ class Bird {
       playSound("flap");
       this.velocity = this.flap;
       this.rotation = -4.6;
-      
     }
   }
 

@@ -9,7 +9,7 @@ let audioUnlocked = false;
 const BUTTON_CONFIG = {
   width: 95,
   height: 35,
-  gap: 30,
+  gap: 20,
   pauseSize: 35,
   pauseMargin: 20,
 };
@@ -42,14 +42,14 @@ const BUTTONS = {
       console.log("Pause button clicked!");
       gameState.pauseGame();
     },
-    { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize }
+    { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize },
   ),
   resume: createButton(
     () => {
       console.log("Resume button clicked!");
       gameState.resumeGame();
     },
-    { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize }
+    { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize },
   ),
 };
 

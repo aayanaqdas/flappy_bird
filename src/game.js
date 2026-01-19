@@ -64,7 +64,9 @@ function drawPipesAndCheckCollisions() {
   }
 }
 
+
 function drawGame() {
+  gameState.updateTransition();
   gameState.updateGroundX();
 
   ctx.drawImage(spritesheet, bg.sx, bg.sy, bg.sw, bg.sh, 0, 0, GAME_WIDTH, GAME_HEIGHT + 50);
@@ -95,6 +97,8 @@ function drawGame() {
   );
 
   drawUI();
+  gameState.drawTransition()
+  gameState.drawFlash()
 }
 
 function gameLoop() {
