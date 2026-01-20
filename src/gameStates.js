@@ -1,4 +1,5 @@
 import { playSound } from "./audio.js";
+import { Animation } from "./animation.js";
 
 export const GameStates = {
   MENU: "MENU",
@@ -14,7 +15,7 @@ class GameState {
     this.previousState = null;
 
     this.score = 0;
-    this.bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
+    this.bestScore = parseInt(localStorage.getItem("bestScore") || "0");
 
     this.GAME_WIDTH = 320;
     this.GAME_HEIGHT = 512;
@@ -22,10 +23,15 @@ class GameState {
     this.groundY = 70;
     this.groundX = 0;
     this.gameSpeed = 2;
+
     this.flashAlpha = 0;
     this.transitionAlpha = 0;
     this.fadeDirection = 0;
     this.targetState = null;
+
+    this.gameOverTextAnim = null;
+    this.scoreboardAnim = null;
+    this.scoreboardContentsAnim = null;
 
     this.canvas = null;
     this.ctx = null;
@@ -101,6 +107,39 @@ class GameState {
     this.flashAlpha = 1;
     playSound("swoosh");
     this.setState(GameStates.GAME_OVER);
+
+    this.gameOverTextAnim = new Animation(1000, 300);
+    this.gameOverTextAnim.start();
+
+    this.scoreboardAnim = new Animation(1400, 300);
+    this.scoreboardAnim.start();
+
+    this.scoreboardContentsAnim = new Animation(1700, 0);
+    this.scoreboardContentsAnim.start();
+  }
+
+  getGameOverTextOffset() {
+    if (!this.gameOverTextAnim) return null;
+
+    const p = this.gameOverTextAnim.getProgress();
+    if (p === null) return null;
+
+    // Simple bounce: up then down
+    const bounce = p < 0.67 ? -20 * (p / 0.67) : -20 * (1 - (p - 0.67) / 0.33);
+    return bounce;
+  }
+
+  getScoreboardOffset() {
+    if (!this.scoreboardAnim) return null;
+
+    const p = this.scoreboardAnim.getProgress();
+    if (p === null) return null;
+
+    return 400 * (1 - p);
+  }
+
+  isScoreboardContentsVisible() {
+    return this.scoreboardContentsAnim && this.scoreboardContentsAnim.getProgress() !== null;
   }
 
   incrementScore() {
@@ -112,6 +151,7 @@ class GameState {
     this.score = 0;
   }
   reset() {
+    this.bestScore = parseInt(localStorage.getItem("bestScore") || "0");
     this.menu();
   }
 
@@ -138,18 +178,17 @@ class GameState {
 
   updateTransition() {
     if (this.fadeDirection === 0) return;
+
     this.transitionAlpha += this.fadeDirection * 0.1;
 
     if (this.transitionAlpha >= 1) {
       playSound("swoosh");
-      this.transitionAlpha = 1;
-      this.fadeDirection = -1;
       this.setState(this.targetState);
-    }
-
-    if (this.transitionAlpha <= 0 && this.fadeDirection === -1) {
-      this.transitionAlpha = 0;
+      this.fadeDirection = -1;
+      this.transitionAlpha = 1;
+    } else if (this.transitionAlpha <= 0) {
       this.fadeDirection = 0;
+      this.transitionAlpha = 0;
     }
   }
 

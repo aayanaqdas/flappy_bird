@@ -17,60 +17,77 @@ const BUTTON_CONFIG = {
 const createButton = (onClick, config = {}) => ({
   x: 0,
   y: 0,
+  baseY: 0,
   w: config.width || BUTTON_CONFIG.width,
   h: config.height || BUTTON_CONFIG.height,
+  pressed: false,
   onClick,
 });
 
 const BUTTONS = {
   start: createButton(() => {
-    console.log("Start button clicked!");
     gameState.readyGame();
   }),
   score: createButton(() => {
-    console.log("Score button clicked!");
+    if (confirm(`Reset your best score (${gameState.bestScore})?`)) {
+      gameState.bestScore = 0;
+      localStorage.setItem("bestScore", "0");
+      gameState.reset();
+    }
   }),
   ok: createButton(() => {
-    console.log("OK button clicked!");
     gameState.reset();
   }),
-  share: createButton(() => {
-    console.log("Share button clicked!");
+  share: createButton(async () => {
+    if (!navigator.share) {
+      alert("Web Share not supported (check HTTPS)");
+      return;
+    }
+
+    try {
+      await navigator.share({
+        title: "Flappy Bird Score",
+        text: `I scored ${gameState.score} points in this Flappy Bird remake! Can you beat it?`,
+        url: window.location.href,
+      });
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.log("Share failed:", err.name);
+      }
+    }
   }),
   pause: createButton(
     () => {
-      console.log("Pause button clicked!");
       gameState.pauseGame();
     },
     { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize },
   ),
   resume: createButton(
     () => {
-      console.log("Resume button clicked!");
       gameState.resumeGame();
     },
     { width: BUTTON_CONFIG.pauseSize, height: BUTTON_CONFIG.pauseSize },
   ),
 };
 
-BUTTONS.pause.x = BUTTON_CONFIG.pauseMargin;
-BUTTONS.pause.y = BUTTON_CONFIG.pauseMargin;
-BUTTONS.resume.x = BUTTON_CONFIG.pauseMargin;
-BUTTONS.resume.y = BUTTON_CONFIG.pauseMargin;
+function setButtonPosition(button, x, y) {
+  button.x = x;
+  button.y = y;
+  button.baseY = y;
+}
+
+setButtonPosition(BUTTONS.pause, BUTTON_CONFIG.pauseMargin, BUTTON_CONFIG.pauseMargin);
+setButtonPosition(BUTTONS.resume, BUTTON_CONFIG.pauseMargin, BUTTON_CONFIG.pauseMargin);
 
 function positionButtons() {
   const btnY = GAME_HEIGHT - gameState.groundY - 50;
   const { gap, width } = BUTTON_CONFIG;
+  const centerX = GAME_WIDTH / 2;
 
-  BUTTONS.start.x = GAME_WIDTH / 2 - width - gap;
-  BUTTONS.start.y = btnY;
-  BUTTONS.score.x = GAME_WIDTH / 2 + gap;
-  BUTTONS.score.y = btnY;
-
-  BUTTONS.ok.x = GAME_WIDTH / 2 - width - gap;
-  BUTTONS.ok.y = btnY;
-  BUTTONS.share.x = GAME_WIDTH / 2 + gap;
-  BUTTONS.share.y = btnY;
+  setButtonPosition(BUTTONS.start, centerX - width - gap, btnY);
+  setButtonPosition(BUTTONS.score, centerX + gap, btnY);
+  setButtonPosition(BUTTONS.ok, centerX - width - gap, btnY);
+  setButtonPosition(BUTTONS.share, centerX + gap, btnY);
 }
 
 function isPointInRect(clickX, clickY, x, y, width, height) {
@@ -81,16 +98,29 @@ function isButtonClicked(button, clickX, clickY) {
   return isPointInRect(clickX, clickY, button.x, button.y, button.w, button.h);
 }
 
+function pressButton(button) {
+  button.pressed = true;
+  button.y = button.baseY + 2;
+
+  setTimeout(() => {
+    button.pressed = false;
+    button.y = button.baseY;
+  }, 100);
+}
+
 const STATE_CLICK_HANDLERS = {
   MENU: (clickX, clickY) => {
     if (isButtonClicked(BUTTONS.start, clickX, clickY)) {
+      pressButton(BUTTONS.start);
       BUTTONS.start.onClick();
     } else if (isButtonClicked(BUTTONS.score, clickX, clickY)) {
+      pressButton(BUTTONS.score);
       BUTTONS.score.onClick();
     }
   },
   READY: (clickX, clickY) => {
     if (isButtonClicked(BUTTONS.pause, clickX, clickY)) {
+      pressButton(BUTTONS.pause);
       BUTTONS.pause.onClick();
     } else {
       gameState.startGame();
@@ -98,18 +128,22 @@ const STATE_CLICK_HANDLERS = {
   },
   PLAYING: (clickX, clickY) => {
     if (isButtonClicked(BUTTONS.pause, clickX, clickY)) {
+      pressButton(BUTTONS.pause);
       BUTTONS.pause.onClick();
     }
   },
   PAUSED: (clickX, clickY) => {
     if (isButtonClicked(BUTTONS.resume, clickX, clickY)) {
+      pressButton(BUTTONS.resume);
       BUTTONS.resume.onClick();
     }
   },
   GAME_OVER: (clickX, clickY) => {
     if (isButtonClicked(BUTTONS.ok, clickX, clickY)) {
+      pressButton(BUTTONS.ok);
       BUTTONS.ok.onClick();
     } else if (isButtonClicked(BUTTONS.share, clickX, clickY)) {
+      pressButton(BUTTONS.share);
       BUTTONS.share.onClick();
     }
   },

@@ -215,12 +215,15 @@ const SCOREBOARD_CONFIG = {
 };
 
 function drawScoreboard() {
+  const offset = gameState.getScoreboardOffset();
+  if (offset === null) return;
+
   const { score, bestScore } = gameState;
   const { scoreBoard } = sprites;
   const { width, height } = SCOREBOARD_CONFIG;
 
   const x = (GAME_WIDTH - width) / 2;
-  const y = (GAME_HEIGHT - height) / 2;
+  const y = (GAME_HEIGHT - height) / 2 + offset;
   const isNewScore = score > bestScore;
 
   ctx.drawImage(
@@ -235,33 +238,41 @@ function drawScoreboard() {
     height,
   );
 
-  drawScore(score, x + width - SCOREBOARD_CONFIG.scoreXOffset, y + SCOREBOARD_CONFIG.scoreYOffset);
-  drawScore(
-    isNewScore ? score : bestScore,
-    x + width - SCOREBOARD_CONFIG.scoreXOffset,
-    y + SCOREBOARD_CONFIG.bestScoreYOffset,
-  );
-
-  if (isNewScore) {
-    const newLabel = sprites.messages.newScore;
-    ctx.drawImage(
-      spritesheet,
-      newLabel.sx,
-      newLabel.sy,
-      newLabel.sw,
-      newLabel.sh,
-      x + width - SCOREBOARD_CONFIG.newLabelXOffset,
-      y + SCOREBOARD_CONFIG.newLabelYOffset,
-      SCOREBOARD_CONFIG.newLabelWidth,
-      SCOREBOARD_CONFIG.newLabelHeight,
+  if (gameState.isScoreboardContentsVisible()) {
+    drawScore(
+      score,
+      x + width - SCOREBOARD_CONFIG.scoreXOffset,
+      y + SCOREBOARD_CONFIG.scoreYOffset,
     );
-    localStorage.setItem("bestScore", score);
-  }
+    drawScore(
+      isNewScore ? score : bestScore,
+      x + width - SCOREBOARD_CONFIG.scoreXOffset,
+      y + SCOREBOARD_CONFIG.bestScoreYOffset,
+    );
 
-  const medal = getMedal(score);
-  if (medal) {
-    drawMedal(medal, x, y, height);
-  } else {
+    if (isNewScore) {
+      const newLabel = sprites.messages.newScore;
+      ctx.drawImage(
+        spritesheet,
+        newLabel.sx,
+        newLabel.sy,
+        newLabel.sw,
+        newLabel.sh,
+        x + width - SCOREBOARD_CONFIG.newLabelXOffset,
+        y + SCOREBOARD_CONFIG.newLabelYOffset,
+        SCOREBOARD_CONFIG.newLabelWidth,
+        SCOREBOARD_CONFIG.newLabelHeight,
+      );
+      localStorage.setItem("bestScore", score);
+    }
+
+    const medal = getMedal(score);
+    if (medal) {
+      drawMedal(medal, x, y, height);
+    }
+  }
+  
+  if (!gameState.isScoreboardContentsVisible()) {
     sparkles = [];
   }
 }
@@ -318,8 +329,7 @@ function drawReadyUI() {
     tapLayout.height,
   );
 
-  drawScore(gameState.score);
-  drawButton(sprites.buttons.pause, BUTTONS.pause);
+  drawPlayingUI();
 }
 
 function drawPlayingUI() {
@@ -328,34 +338,39 @@ function drawPlayingUI() {
 }
 
 function drawPausedUI() {
-  drawScore(gameState.score);
-  drawButton(sprites.buttons.resume, BUTTONS.resume);
-
   if (gameState.wasPausedFromReady()) {
     drawReadyUI();
-    drawButton(sprites.buttons.resume, BUTTONS.resume);
+  } else {
+    drawScore(gameState.score);
   }
+  drawButton(sprites.buttons.resume, BUTTONS.resume);
 }
 
 function drawGameOverScreen() {
   const gameOverMsg = sprites.messages.gameOver;
   const { width, height, y } = LAYOUT_CONFIG.gameOver;
 
-  ctx.drawImage(
-    spritesheet,
-    gameOverMsg.sx,
-    gameOverMsg.sy,
-    gameOverMsg.sw,
-    gameOverMsg.sh,
-    (GAME_WIDTH - width) / 2,
-    y,
-    width,
-    height,
-  );
+  const offset = gameState.getGameOverTextOffset();
+  if (offset !== null) {
+    ctx.drawImage(
+      spritesheet,
+      gameOverMsg.sx,
+      gameOverMsg.sy,
+      gameOverMsg.sw,
+      gameOverMsg.sh,
+      (GAME_WIDTH - width) / 2,
+      y + offset,
+      width,
+      height,
+    );
+  }
 
   drawScoreboard();
-  drawButton(sprites.buttons.ok, BUTTONS.ok);
-  drawButton(sprites.buttons.share, BUTTONS.share);
+
+  if (gameState.isScoreboardContentsVisible()) {
+    drawButton(sprites.buttons.ok, BUTTONS.ok);
+    drawButton(sprites.buttons.share, BUTTONS.share);
+  }
 }
 
 function initUI(spriteMap) {

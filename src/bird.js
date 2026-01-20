@@ -161,7 +161,7 @@ function birdControls(bird) {
     }
   });
 
-  document.addEventListener("pointerdown", (e) => {
+  gameState.canvas.addEventListener("pointerdown", () => {
     bird.jump();
   });
 }
